@@ -1,12 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const CubeSchema = new Schema({
+const AccessorySchema = new Schema({
     name: {
-        type: String,
-        required: true
-    },
-    description: {
         type: String,
         required: true
     },
@@ -14,14 +10,14 @@ const CubeSchema = new Schema({
         type: String,
         required: true
     },
-    difficultyLevel: {
-        type: Number,
+    description: {
+        type: String,
         required: true
     },
-    accessories: [{
+    cubes: [{
         type: 'ObjectId',
-        ref: 'Accessory'
+        ref: 'Cube'
     }]
 });
 
-module.exports = mongoose.model('Cube', CubeSchema);
+module.exports = mongoose.model('Accessory', AccessorySchema);
