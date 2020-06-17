@@ -18,6 +18,10 @@ const CubeSchema = new Schema({
         type: Number,
         required: true
     },
+    creatorId: {
+        type: 'ObjectId',
+        ref: 'User'
+    },
     accessories: [{
         type: 'ObjectId',
         ref: 'Accessory'

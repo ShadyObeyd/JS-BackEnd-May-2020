@@ -1,3 +1,6 @@
+const env = process.env.NODE_ENV || 'development';
+const config = require('../config/config')[env];
+const jwt = require('jsonwebtoken');
 const Cube = require('../models/cube');
 
 const getAllCubes = async () => {
@@ -6,8 +9,8 @@ const getAllCubes = async () => {
     return cubes;
 };
 
-const saveCube = async (name, description, imageUrl, difficultyLevel) => {
-    let cube = new Cube({name, description, imageUrl, difficultyLevel});
+const saveCube = async (name, description, imageUrl, difficultyLevel, creatorId) => {
+    let cube = new Cube({ name, description, imageUrl, difficultyLevel, creatorId });
 
     await cube.save((err) => {
         if (err) {
@@ -31,8 +34,37 @@ const attachAccessoryToCube = async (cubeId, accessoryId) => {
     });
 }
 
-const search = (string, from, to) => {
+const editCube = async (cubeId, name, description, imageUrl, difficultyLevel) => {
+    let updateCubeObj = {
+        name,
+        description,
+        imageUrl,
+        difficultyLevel
+    };
+
+    await Cube.findByIdAndUpdate(cubeId, updateCubeObj);
+}
+
+const deleteCube = async (cubeId) => {
+    await Cube.findByIdAndDelete(cubeId);
+}
+
+const isOwnCube = (req, cube) => {
+    let token = req.cookies['authToken'];
+    if (token) {
+        try {
+            let decodedToken = jwt.verify(token, config.privateKey);
+            return cube.creatorId == decodedToken.userId;
+        } catch (e) {
+            return false;
+        }
+    }
     
+    return false;
+}
+
+const search = (string, from, to) => {
+
 }
 
 module.exports = {
@@ -40,5 +72,8 @@ module.exports = {
     saveCube,
     getCubeById,
     search,
-    attachAccessoryToCube
+    attachAccessoryToCube,
+    editCube,
+    deleteCube,
+    isOwnCube
 };
