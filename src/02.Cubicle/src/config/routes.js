@@ -1,9 +1,6 @@
-const env = process.env.NODE_ENV || 'development';
-const config = require('../config/config')[env];
 const cubesController = require('../controllers/cube-controller');
 const accessoriesController = require('../controllers/accessory-controller');
 const usersController = require('../controllers/user-controller');
-const jwt = require('jsonwebtoken');
 
 module.exports = (app) => {
     app.get('/', usersController.getUserStatus, async (req, res) => {
@@ -26,22 +23,13 @@ module.exports = (app) => {
     app.get('/create', usersController.authorize, usersController.getUserStatus, (req, res) => {
         res.render('create', {
             title: 'Add Cube',
-            isLoggedIn: req.isLoggedIn
+            isLoggedIn: req.isLoggedIn,
+            error: req.query['error']
         });
     });
 
     app.post('/create', usersController.authorizeJson, async (req, res) => {
-        let { name,
-            description,
-            imageUrl,
-            difficultyLevel } = req.body;
-
-        let token = req.cookies['authToken'];
-        let decodedToken = jwt.verify(token, config.privateKey);
-
-        await cubesController.saveCube(name, description, imageUrl, difficultyLevel, decodedToken.userId);
-
-        res.redirect('/');
+        await cubesController.saveCube(req, res);
     });
 
     app.get('/details/:id', usersController.getUserStatus, async (req, res) => {
@@ -60,18 +48,13 @@ module.exports = (app) => {
     app.get('/create/accessory', usersController.authorize, usersController.getUserStatus, (req, res) => {
         res.render('createAccessory', {
             title: 'Create Accessory',
-            isLoggedIn: req.isLoggedIn
+            isLoggedIn: req.isLoggedIn,
+            error: req.query['error']
         });
     })
 
     app.post('/create/accessory', usersController.authorizeJson, async (req, res) => {
-        let { name,
-            description,
-            imageUrl } = req.body;
-
-        await accessoriesController.saveAccessory(name, description, imageUrl);
-
-        res.redirect('/');
+        await accessoriesController.saveAccessory(req, res);
     })
 
     app.get('/attach/accessory/:id', usersController.authorize, usersController.getUserStatus, async (req, res) => {
@@ -99,9 +82,11 @@ module.exports = (app) => {
     });
 
     app.get('/register', usersController.checkGuest, usersController.getUserStatus, (req, res) => {
+
         res.render('register', { 
             title: 'Register',
-            isLoggedIn: req.isLoggedIn
+            isLoggedIn: req.isLoggedIn,
+            error: req.query['error']
         });
     });
 
@@ -112,7 +97,8 @@ module.exports = (app) => {
     app.get('/login', usersController.checkGuest, usersController.getUserStatus, (req, res) => {
         res.render('login', { 
             title: 'Login',
-            isLoggedIn: req.isLoggedIn
+            isLoggedIn: req.isLoggedIn,
+            error: req.query['error']
         });
     });
 

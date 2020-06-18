@@ -2,6 +2,7 @@ const env = process.env.NODE_ENV || 'development';
 const config = require('../config/config')[env];
 const jwt = require('jsonwebtoken');
 const Cube = require('../models/cube');
+const pattern = /^[A-Za-z0-9 ]+$/;
 
 const getAllCubes = async () => {
     let cubes = await Cube.find().lean();
@@ -9,15 +10,45 @@ const getAllCubes = async () => {
     return cubes;
 };
 
-const saveCube = async (name, description, imageUrl, difficultyLevel, creatorId) => {
-    let cube = new Cube({ name, description, imageUrl, difficultyLevel, creatorId });
+const saveCube = async (req, res) => {
+    let { name,
+        description,
+        imageUrl,
+        difficultyLevel } = req.body;
 
-    await cube.save((err) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-    });
+    if (!name || name.length < 5) {
+        res.redirect('/create?error=Name must be at least 5 characters long!');
+        return;
+    }
+
+    if (!name.match(pattern)) {
+        res.redirect('/create?error=Name must contain only English letters and digits!');
+        return;
+    }
+
+    if (!description || description.length < 20) {
+        res.redirect('/create?error=Description must be at least 20 characters long!');
+        return;
+    }
+
+    if (!description.match(pattern)) {
+        res.redirect('/create?error=Description must contain only English letters and digits!');
+        return;
+    }
+
+    if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+        res.redirect('/create?error=Invalid image url!');
+        return;
+    }
+
+    let token = req.cookies['authToken'];
+    let decodedToken = jwt.verify(token, config.privateKey);
+
+    let cube = new Cube({ name, description, imageUrl, difficultyLevel, creatorId: decodedToken.userId });
+
+    await cube.save();
+
+    res.redirect('/');
 }
 
 const getCubeById = async (id) => {
@@ -59,7 +90,7 @@ const isOwnCube = (req, cube) => {
             return false;
         }
     }
-    
+
     return false;
 }
 

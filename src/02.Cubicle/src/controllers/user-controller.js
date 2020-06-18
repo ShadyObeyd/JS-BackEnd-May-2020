@@ -4,12 +4,41 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const usernamePattern = /^[A-Za-z0-9]+$/;
+const passwordPattern = /^[A-Za-z0-9]+$/;
 
 const createUser = async (req, res) => {
     let { username, password, repeatPassword } = req.body;
 
+    if (!username || username.length < 5) {
+        res.redirect('/register?error=Username must be at least 5 characters long!');
+        return;
+    }
+
+    if (!username.match(usernamePattern)) {
+        res.redirect('/register?error=Username must contain only English letters and digits!');
+        return;
+    }
+
+    let existingUser = await User.findOne({ username });
+
+    if (existingUser) {
+        res.redirect('/register?error=Username is already taken!');
+        return;
+    }
+
+    if (!password || password.length < 8) {
+        res.redirect('/register?error=Passowrd must be at least 8 characters long!');
+        return;
+    }
+
+    if (!password.match(passwordPattern)) {
+        res.redirect('/register?error=Passowrd must contain only English letters and digits!');
+        return;
+    }
+
     if (password !== repeatPassword) {
-        res.render('register', { title: 'Register' });
+        res.redirect('/register?error=Passowrds do not match!');
         return;
     }
 
@@ -21,12 +50,7 @@ const createUser = async (req, res) => {
         password: hash
     });
 
-    await user.save((err) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-    });
+    await user.save();
 
     jwt.sign({ userId: user._id, username: user.username }, config.privateKey, (err, token) => {
         if (err) {
@@ -45,14 +69,14 @@ const loginUser = async (req, res) => {
     let user = await User.findOne({ username });
 
     if (!user) {
-        res.render('login', { title: 'Login' });
+        res.redirect('/login?error=Invalid username or password!');
         return;
     }
 
     let status = await bcrypt.compare(password, user.password);
 
     if (!status) {
-        res.render('login', { title: 'Login' });
+        res.redirect('/login?error=Invalid username or password!');
         return;
     }
 
