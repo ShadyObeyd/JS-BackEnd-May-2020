@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Express Exam</title>
+    <link href="/static//css/site.css" type="text/css" rel="stylesheet">
+    <link href="/static//css/create-theater.css" type="text/css" rel="stylesheet">
+    <link href="/static//css/details.css" type="text/css" rel="stylesheet">
+    <link href="/static//css/homePage.css" type="text/css" rel="stylesheet">
+    <link href="/static//css/responsive.css" type="text/css" rel="stylesheet">
+    <link href="/static//css/style.css" type="text/css" rel="stylesheet">
+</head>
+
+<body>
+    {{> header}}
+    {{#if error}}
+    <section class="notifications error">
+        <p>{{error}}</p>
+    </section>
+    {{/if}}
+    {{{body}}}
+    {{> footer}}
+</body>
+
+</html>
